@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default permissions for Rodela Companion",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "autostart:default",
+    "notification:default",
+    "updater:default"
+  ]
+}

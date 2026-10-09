@@ -1,7 +1,7 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, Manager, PhysicalPosition,
+    Emitter, Manager,
 };
 use std::time::Duration;
 
@@ -24,8 +24,8 @@ pub fn run() {
             let handle = app.handle().clone();
 
             // Tray Menu Setup
-            let quit_i = MenuItem::with_id(app, "quit", "Exit Rodela Companion", true, None<String>)?;
-            let show_i = MenuItem::with_id(app, "show", "Show Rodela", true, None<String>)?;
+            let quit_i = MenuItem::with_id(app, "quit", "Exit Rodela Companion", true, None::<&str>)?;
+            let show_i = MenuItem::with_id(app, "show", "Show Rodela", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
 
             let _tray = TrayIconBuilder::new()

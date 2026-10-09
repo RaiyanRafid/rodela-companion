@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Rodela Companion",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.raiyanhossain.rodelacompanion",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -21,7 +21,7 @@
         "decorations": false,
         "alwaysOnTop": true,
         "shadow": false,
-        "skipTaskbar": true
+        "skipTaskbar": false
       }
     ],
     "security": {
@@ -42,6 +42,7 @@
   "plugins": {
     "updater": {
       "endpoints": [
+        "https://rodela.raiyanhossain.com/companion/latest.json",
         "https://github.com/RaiyanRafid/rodela-companion/releases/latest/download/latest.json"
       ]
     }

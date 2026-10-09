@@ -44,3 +44,6 @@ jobs:
           releaseBody: 'Automated release build of Rodela Desktop Companion for Windows.'
           releaseDraft: false
           prerelease: false
+
+      - name: Notify build success
+        run: echo "Windows installer built and released successfully!"

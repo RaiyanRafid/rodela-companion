@@ -18,7 +18,6 @@ pub fn run() {
             Some(vec!["--autostart"]),
         ))
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![get_companion_status])
         .setup(|app| {
             let handle = app.handle().clone();

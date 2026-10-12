@@ -39,13 +39,5 @@
       "icons/icon.ico",
       "icons/icon.png"
     ]
-  },
-  "plugins": {
-    "updater": {
-      "endpoints": [
-        "https://rodela.raiyanhossain.com/companion/latest.json",
-        "https://github.com/RaiyanRafid/rodela-companion/releases/latest/download/latest.json"
-      ]
-    }
   }
 }

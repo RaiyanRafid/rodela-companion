@@ -9,13 +9,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-windows:
+  build-and-release:
     permissions:
       contents: write
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'windows-latest'
+          - platform: 'ubuntu-22.04'
+
+    runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libxdo-dev
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -23,12 +36,12 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 11
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -41,9 +54,9 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: 'Rodela Companion v__VERSION__'
-          releaseBody: 'Automated release build of Rodela Desktop Companion for Windows.'
+          releaseBody: 'Automated cross-platform release build of Rodela Desktop Companion for Windows and Linux.'
           releaseDraft: false
           prerelease: false
 
       - name: Notify build success
-        run: echo "Windows installer built and released successfully!"
+        run: echo "${{ matrix.platform }} build completed successfully!"

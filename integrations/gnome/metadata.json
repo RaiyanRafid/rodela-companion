@@ -1,0 +1,7 @@
+{
+  "uuid": "rodela-follow-monitor@rodela-companion",
+  "name": "Rodela Active Monitor",
+  "description": "Move Rodela Companion to the monitor where you click, including on Wayland.",
+  "shell-version": ["46"],
+  "version": 1
+}

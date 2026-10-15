@@ -1,9 +1,9 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Emitter, Manager,
+    Manager,
 };
-use std::time::Duration;
+mod companion;
 
 #[tauri::command]
 fn get_companion_status() -> String {
@@ -18,12 +18,14 @@ pub fn run() {
             Some(vec!["--autostart"]),
         ))
         .plugin(tauri_plugin_notification::init())
-        .invoke_handler(tauri::generate_handler![get_companion_status])
+        .invoke_handler(tauri::generate_handler![
+            get_companion_status,
+            companion::get_companion_reaction
+        ])
         .setup(|app| {
-            let handle = app.handle().clone();
-
             // Tray Menu Setup
-            let quit_i = MenuItem::with_id(app, "quit", "Exit Rodela Companion", true, None::<&str>)?;
+            let quit_i =
+                MenuItem::with_id(app, "quit", "Exit Rodela Companion", true, None::<&str>)?;
             let show_i = MenuItem::with_id(app, "show", "Show Rodela", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
 
@@ -65,29 +67,6 @@ pub fn run() {
                     }
                 })
                 .build(app)?;
-
-            // Background Activity Loop
-            let bg_handle = handle.clone();
-            std::thread::spawn(move || {
-                let mut ticker: u64 = 0;
-                loop {
-                    std::thread::sleep(Duration::from_secs(12));
-                    ticker += 1;
-
-                    // Periodic cute companionship triggers
-                    if ticker % 5 == 0 {
-                        let _ = bg_handle.emit("context-update", serde_json::json!({
-                            "activity": "coding",
-                            "speech": "কোডিং দেখতে দারুণ লাগতেছে জান! কোনো হেল্প লাগবে? 🥰"
-                        }));
-                    } else if ticker % 13 == 0 {
-                        let _ = bg_handle.emit("context-update", serde_json::json!({
-                            "activity": "love",
-                            "speech": "আমি সবসময় তোমার স্ক্রিনের পাশেই আছি জান! ❤️"
-                        }));
-                    }
-                }
-            });
 
             Ok(())
         })

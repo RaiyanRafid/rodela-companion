@@ -1,0 +1,9 @@
+{
+  "base_url": "https://rodela.raiyanhossain.com/v1",
+  "model": "hermes-agent",
+  "session_id": "rodela-zorin-desktop",
+  "session_key": "rodela:raiyan:desktop",
+  "interval_seconds": 20,
+  "collect_text": true,
+  "excluded_apps": ["org.gnome.seahorse.Application", "keepassxc", "1password", "bitwarden"]
+}

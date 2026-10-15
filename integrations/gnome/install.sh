@@ -21,7 +21,7 @@ if gnome-extensions info "$uuid" >/dev/null 2>&1; then
     gnome-extensions disable "$uuid"
 fi
 mkdir -p "$destination"
-for file in metadata.json extension.js monitor-follow.js; do
+for file in metadata.json extension.js monitor-follow.js context-export.js; do
     cp "$source_dir/$file" "$destination/$file"
 done
 

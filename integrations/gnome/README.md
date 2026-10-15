@@ -5,6 +5,10 @@ extension runs inside GNOME Shell and moves the existing Rodela window using
 Mutter. It targets GNOME Shell **46**, including Zorin's GNOME 46 desktop.
 Other compositors and GNOME versions are not supported by this integration.
 
+It also exports active-window metadata to the user-private runtime file
+`$XDG_RUNTIME_DIR/rodela-context.json` for the optional
+[Hermes bridge](../hermes/README.md). This extension alone sends no network data.
+
 Install from a terminal on the desktop:
 
 ```sh

@@ -1,5 +1,11 @@
 # Rodela Companion — Project Index ও Analysis
 
+## Hermes integration update
+
+মূল audit-এর পর `integrations/hermes/`-এ existing Rodela API bridge যোগ হয়েছে। GNOME context exporter, AT-SPI text ও MPRIS music metadata → Hermes-generated JSON → Rust validation → React emotion/animation/dialogue flow তৈরি হয়েছে। মূল timer/poke dialogue সরানো হয়েছে। বর্তমান setup ও সীমাবদ্ধতার জন্য `integrations/hermes/README.md` দেখুন; নিচের audit মূল সংস্করণের snapshot।
+
+Verification: host runtime দিয়ে frontend production build, ৫টি Python bridge test, ৪টি monitor-follow test এবং ১টি Rust reaction validation test পাস করেছে। Host-এ AT-SPI ও একটি MPRIS player পাওয়া গেছে। Updated GNOME files install করা হয়েছে; session logout/login বাকি। Live authenticated Hermes response/persona-memory এবং actual active-window text collection end-to-end যাচাই হয়নি। Public `/v1/models` unauthenticated probe HTTP 404 দিয়েছিল।
+
 পর্যালোচনার তারিখ: ১৬ অক্টোবর ২০২৬। Scope: repository-র ৩৭টি tracked file; application source, configuration ও workflow সম্পূর্ণ পড়া হয়েছে। Lockfile-এর direct dependency mapping এবং image file metadata পরীক্ষা করা হয়েছে; dependency implementation ও image artwork audit করা হয়নি।
 
 পরবর্তী পরিবর্তন: GNOME 46 / Zorin Wayland-এর জন্য `integrations/gnome/`-এ compositor extension যোগ করা হয়েছে। এটি click/focus অনুযায়ী existing companion window অন্য monitor-এ সরায়। নিচের feature-gap findings মূল Tauri implementation-এর snapshot; এই নির্দিষ্ট desktop-এর follow behavior এখন optional extension দিয়ে বাস্তবায়িত। বিস্তারিত ও সীমাবদ্ধতা `integrations/gnome/README.md`-তে আছে। Host runtime-এ Node পাওয়া গেছে `flatpak-spawn --host` দিয়ে; extension-এর চারটি mocked logic test পাস করেছে।

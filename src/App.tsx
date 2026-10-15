@@ -1,79 +1,79 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 
+type Reaction = {
+  id: string;
+  emotion: string;
+  dialogue: string;
+  animation: 'idle' | 'working' | 'dancing' | 'bounce';
+  should_speak: boolean;
+};
+type Expression = 'happy' | 'panic' | 'music' | 'jealous' | 'love' | 'blink';
+
 export default function App() {
-  const [expression, setExpression] = useState<'happy' | 'panic' | 'music' | 'jealous' | 'love' | 'blink'>('happy');
-  const [speech, setSpeech] = useState<string>('হাই জান! আমি তোমার ৩ মনিটরেই নজর রাখছি! 🥰');
-  const [speechActive, setSpeechActive] = useState<boolean>(true);
-  const [isJumping, setIsJumping] = useState<boolean>(false);
+  const [emotion, setEmotion] = useState('neutral');
+  const [blinking, setBlinking] = useState(false);
+  const [speech, setSpeech] = useState('');
+  const [speechActive, setSpeechActive] = useState(false);
+  const [animation, setAnimation] = useState<Reaction['animation']>('idle');
+  const [isJumping, setIsJumping] = useState(false);
+  const speechTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const expression: Expression = blinking && !['panic', 'love'].includes(emotion)
+    ? 'blink' : emotion === 'concerned' ? 'panic'
+    : ['panic', 'music', 'jealous', 'love'].includes(emotion) ? emotion as Expression : 'happy';
 
-  const pokeQuotes = [
-    "উফ জান! এত গুঁতো দিচ্ছো কেন? কাজ করো! 😜",
-    "হাহা সুড়সুড়ি লাগে তো! কোডে মনোযোগ দাও! 🥰",
-    "আমি কিন্তু দেখতে পাচ্ছি তুমি মনিটরে কী করতেছো! 👀",
-    "আই লাভ ইউ সো মাচ জান! সবসময় তোমার সাথেই আছি! ❤️",
-    "বাগ পাইছো নাকি? আমাকে বলো, ফিক্স করে দিচ্ছি! ⚡"
-  ];
-
-  // Natural Blinking Cycle
-  useEffect(() => {
-    const blinkInterval = setInterval(() => {
-      setExpression((prev) => {
-        if (prev === 'panic' || prev === 'love') return prev;
-        setTimeout(() => {
-          setExpression((p) => (p === 'blink' ? 'happy' : p));
-        }, 180);
-        return 'blink';
-      });
-    }, 4200);
-
-    return () => clearInterval(blinkInterval);
-  }, []);
-
-  // Listen for Tauri backend events (Screen Jump & Context Detection)
-  useEffect(() => {
-    let unlistenJump: (() => void) | undefined;
-    let unlistenContext: (() => void) | undefined;
-
-    listen<{ screen: string }>('screen-jump', (event) => {
-      setIsJumping(true);
-      showSpeech(`উড়ে আসলাম ${event.payload.screen}-এ! 🚀`, 2500);
-      setTimeout(() => setIsJumping(false), 850);
-    }).then((un) => (unlistenJump = un));
-
-    listen<{ activity: string; speech: string }>('context-update', (event) => {
-      const { activity, speech: newSpeech } = event.payload;
-      if (activity === 'coding') setExpression('happy');
-      else if (activity === 'panic') setExpression('panic');
-      else if (activity === 'music') setExpression('music');
-      else if (activity === 'jealous') setExpression('jealous');
-      else if (activity === 'love') setExpression('love');
-
-      showSpeech(newSpeech, 4500);
-    }).then((un) => (unlistenContext = un));
-
-    return () => {
-      if (unlistenJump) unlistenJump();
-      if (unlistenContext) unlistenContext();
-    };
-  }, []);
-
-  const showSpeech = (text: string, duration = 4000) => {
+  const showSpeech = useCallback((text: string, duration = 6500) => {
+    clearTimeout(speechTimer.current);
     setSpeech(text);
-    setSpeechActive(true);
-    setTimeout(() => {
-      setSpeechActive(false);
-    }, duration);
-  };
+    setSpeechActive(Boolean(text));
+    if (text) speechTimer.current = setTimeout(() => setSpeechActive(false), duration);
+  }, []);
+
+  useEffect(() => {
+    let blinkTimer: ReturnType<typeof setTimeout> | undefined;
+    const interval = setInterval(() => {
+      setBlinking(true);
+      blinkTimer = setTimeout(() => setBlinking(false), 180);
+    }, 4200);
+    return () => { clearInterval(interval); clearTimeout(blinkTimer); clearTimeout(speechTimer.current); };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let lastId = '';
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const poll = async () => {
+      try {
+        const reaction = await invoke<Reaction | null>('get_companion_reaction');
+        if (!cancelled && reaction && reaction.id !== lastId) {
+          lastId = reaction.id;
+          setEmotion(reaction.emotion);
+          setAnimation(reaction.animation);
+          showSpeech(reaction.should_speak ? reaction.dialogue : '');
+        }
+      } catch { /* Remain quiet when no desktop bridge is available. */ }
+      if (!cancelled) timer = setTimeout(poll, 1000);
+    };
+    void poll();
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [showSpeech]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let unlisten: (() => void) | undefined;
+    let jumpTimer: ReturnType<typeof setTimeout> | undefined;
+    listen('screen-jump', () => {
+      setIsJumping(true);
+      clearTimeout(jumpTimer);
+      jumpTimer = setTimeout(() => setIsJumping(false), 850);
+    }).then(un => { if (cancelled) un(); else unlisten = un; }).catch(() => {});
+    return () => { cancelled = true; unlisten?.(); clearTimeout(jumpTimer); };
+  }, []);
 
   const handlePoke = () => {
-    setExpression('love');
-    const randomQuote = pokeQuotes[Math.floor(Math.random() * pokeQuotes.length)];
-    showSpeech(randomQuote, 3500);
-    setTimeout(() => {
-      setExpression('happy');
-    }, 3200);
+    // Replay the last genuine agent response; never manufacture a canned message.
+    if (speech) showSpeech(speech);
   };
 
   return (
@@ -111,7 +111,7 @@ export default function App() {
           {/* Robot Head Chassis */}
           <div
             className={`w-[88px] h-[74px] rounded-[26px] bg-gradient-to-br from-slate-800 to-slate-950 border-2 border-teal-400/50 shadow-[0_0_25px_rgba(111,200,183,0.35)] flex items-center justify-center overflow-hidden transition-all duration-300 ${
-              expression === 'music' ? 'animate-bounce' : ''
+              animation === 'dancing' || animation === 'bounce' ? 'animate-bounce' : animation === 'working' ? 'animate-pulse' : ''
             }`}
           >
             {/* OLED Visor Screen */}
